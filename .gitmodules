@@ -4,3 +4,6 @@
 [submodule "content/themes/white-fogg-ghost-theme"]
   path = content/themes/white-fogg-ghost-theme
 	url = https://github.com/mobeenabdullah/white-fogg-ghost-theme.git
+[submodule "content/themes/uno"]
+  path = content/themes/uno
+	url = https://github.com/daleanthony/uno.git
