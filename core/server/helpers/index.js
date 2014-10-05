@@ -296,12 +296,6 @@ coreHelpers.content = function (options) {
             );
         }
 
-        // Due to weirdness in downsize the 'words' option
-        // must be passed as a string. refer to #1796
-        // TODO: when downsize fixes this quirk remove this hack.
-        if (truncateOptions.hasOwnProperty('words')) {
-            truncateOptions.words = truncateOptions.words.toString();
-        }
         return new hbs.handlebars.SafeString(
             downsize(this.html, truncateOptions)
         );
@@ -573,7 +567,7 @@ coreHelpers.meta_title = function (options) {
         } else if (this.tag) {
             title = this.tag.name + pageString + ' - ' + blog.title;
         } else if (this.post) {
-            title = this.post.title;
+            title = _.isEmpty(this.post.meta_title) ? this.post.title : this.post.meta_title;
         } else {
             title = blog.title + pageString;
         }
@@ -595,8 +589,10 @@ coreHelpers.meta_description = function (options) {
             description = blog.description;
         } else if (this.author) {
             description = /\/page\//.test(this.relativeUrl) ? '' : this.author.bio;
-        } else if (this.tag || this.post || /\/page\//.test(this.relativeUrl)) {
+        } else if (this.tag || /\/page\//.test(this.relativeUrl)) {
             description = '';
+        } else if (this.post) {
+            description = _.isEmpty(this.post.meta_description) ? '' : this.post.meta_description;
         }
     }
 
@@ -675,6 +671,34 @@ coreHelpers.foreach = function (context, options) {
     }
 
     return ret;
+};
+
+// ### Is Helper
+// `{{#is "paged"}}`
+// `{{#is "index, paged"}}`
+// Checks whether we're in a given context.
+coreHelpers.is = function (context, options) {
+    options = options || {};
+
+    var currentContext = options.data.root.context;
+
+    if (!_.isString(context)) {
+        errors.logWarn('Invalid or no attribute given to is helper');
+        return;
+    }
+
+    function evaluateContext(expr) {
+        return expr.split(',').map(function (v) {
+            return v.trim();
+        }).reduce(function (p, c) {
+            return p || _.contains(currentContext, c);
+        }, false);
+    }
+
+    if (evaluateContext(context)) {
+        return options.fn(this);
+    }
+    return options.inverse(this);
 };
 
 // ### Has Helper
@@ -854,6 +878,8 @@ registerHelpers = function (adminHbs, assetHash) {
     registerThemeHelper('excerpt', coreHelpers.excerpt);
 
     registerThemeHelper('foreach', coreHelpers.foreach);
+
+    registerThemeHelper('is', coreHelpers.is);
 
     registerThemeHelper('has', coreHelpers.has);
 

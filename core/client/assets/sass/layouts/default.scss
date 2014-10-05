@@ -62,8 +62,7 @@
     top: 0;
     right: 0;
     bottom: 0;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
     transition: transform $side-outlet-transition-duration cubic-bezier(0.1, 0.7, 0.1, 1);
     transform: translate3d(60px, 0px, 0px);
     body.right-outlet-expanded & {
@@ -78,7 +77,12 @@
         transform: translate3d(0, 0px, 0px);
         opacity: 1;
 
-        transition: transform $side-outlet-transition-duration cubic-bezier(0.1, 0.7, 0.1, 1);
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+
+        @media (min-width: 901px) {
+            transition: transform $side-outlet-transition-duration cubic-bezier(0.1, 0.7, 0.1, 1);
+        }
 
         &.outlet-pane-out-left {
             transform: translate3d(-100%, 0px, 0px);
@@ -135,7 +139,12 @@
 
 // The burger to expand .global-nav menu
 .menu-button {
-    @include icon($i-menu, 18px) { line-height: 44px; }
+    @include icon($i-menu, 18px) {
+        position: absolute;
+        top: 50%;
+        left: 22px;
+        transform: translateY(-50%);
+    }
     display: block;
     position: absolute;
     top: 0;
@@ -163,7 +172,6 @@
     background: #fff;
     overflow-y: auto;
     overflow-x: hidden;
-    -webkit-overflow-scrolling: touch;
 
     @media (max-width: 900px) {
         top: 44px;

@@ -14,6 +14,25 @@
     }
 }
 
+// Show/hide content list & preview on mobile
+.content-list {
+    &.show-menu {
+        display: block;
+    }
+    &.show-content {
+        display: none;
+    }
+}
+
+.content-preview {
+    &.show-menu {
+        display: none;
+    }
+    &.show-content {
+        display: block;
+    }
+}
+
 .content-list {
     width: 33%;
     padding: 15px;
@@ -30,7 +49,6 @@
         z-index: 500;
         border: none;
     }
-
 
     .content-filter {
         position: relative;
@@ -55,7 +73,6 @@
         color: #fff !important; // getting overridden by floatingheader
     }
 
-
     .content-list-content {
         position: absolute;
         top: 0;
@@ -63,6 +80,7 @@
         bottom: 0;
         left: 0;
         overflow: auto;
+        -webkit-overflow-scrolling: touch;
         padding-top: 40px;
     }
 
@@ -108,7 +126,6 @@
         margin: 0;
         padding: 0;
         border-bottom: $lightbrown 1px solid;
-        position: relative;
 
         a {
 
@@ -173,41 +190,51 @@
     width: 67%;
     padding: 15px;
     position: absolute;
-    bottom:0;
-    top:0;
-    right:0;
+    bottom: 0;
+    top: 0;
+    right: 0;
     overflow: auto;
+    -webkit-overflow-scrolling: touch;
     background: #fff;
+    
     @media (max-width: 900px) {
-        width: auto;
-        left: 100%;
-        right: -100%;
-        margin-left: 15px;
-        border:none;
+        width: 100%;
+        border: none;
+        overflow: visible;
     }
 
     .unfeatured {
         @include icon($i-unfeatured, 14px);
         vertical-align: -6%;
         margin: 0 7px 0 -5px;
-        padding: 5px;
+        padding: 3px;
     }
     .featured {
         @include icon($i-featured, 14px);
         vertical-align: -6%;
         margin: 0 7px 0 -5px;
-        padding: 5px;
+        padding: 3px;
     }
 
     .normal {
         text-transform: none;
-        margin:0 3px;
+        margin: 0 3px;
     }
 
     .content-preview-content {
-        padding: 80px 40px;
+        padding: 5%;
         word-break: break-word;
         hyphens: auto;
+
+        @media (max-width: 900px) {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
 
         .wrapper {
             max-width: 700px;

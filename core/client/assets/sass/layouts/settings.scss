@@ -12,8 +12,8 @@
 // Main settings-menu styles, apply to every item
 .settings-menu {
     width: 25%;
-    position: fixed;
-    top: 60px;
+    position: absolute;
+    top: 0;
     left: 0;
     bottom: 0;
     z-index: 700;
@@ -24,7 +24,7 @@
     }
 
     @media (max-width: 900px) {
-        top: 44px;
+        top: 0;
     }
 
     ul {
@@ -138,12 +138,22 @@
 
 // The main content panel on the right
 .settings-content {
-    margin-left: 25%;
 
     @media (max-width: 900px) {
         &.fade-in {
             animation: none;
         }
+    }
+
+    @media (min-width: 901px) {
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 25%;
+        bottom: 0;
+
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
     }
 
     .settings-general img {
@@ -162,6 +172,18 @@
         @media (max-width: 550px) {
             padding-top: 15px;
         }
+
+        @media (max-width: 900px) {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
     } // .content
 
     .word-count {

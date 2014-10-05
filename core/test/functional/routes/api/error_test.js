@@ -6,7 +6,6 @@
 // But then again testing real code, rather than mock code, might be more useful...
 
 var supertest     = require('supertest'),
-    express       = require('express'),
     should        = require('should'),
     testUtils     = require('../../../utils'),
 
@@ -15,10 +14,8 @@ var supertest     = require('supertest'),
 
 describe('Unauthorized', function () {
     before(function (done) {
-        var app = express();
-
-        ghost({app: app}).then(function () {
-            request = supertest.agent(app);
+        ghost().then(function (ghostServer) {
+            request = supertest.agent(ghostServer.rootApp);
 
             done();
         });
@@ -33,6 +30,7 @@ describe('Unauthorized', function () {
     describe('Unauthorized API', function () {
         it('can\'t retrieve posts', function (done) {
             request.get(testUtils.API.getApiQuery('posts/'))
+                .expect('Cache-Control', testUtils.cacheRules['private'])
                 .expect(401)
                 .end(function firstRequest(err, res) {
                     if (err) {

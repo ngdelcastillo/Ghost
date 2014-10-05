@@ -275,6 +275,13 @@ var _              = require('lodash'),
                     src: [
                         'core/test/functional/routes/**/*_test.js'
                     ]
+                },
+
+                // #### All Module tests
+                module: {
+                    src: [
+                        'core/test/functional/module/**/*_test.js'
+                    ]
                 }
             },
 
@@ -311,10 +318,10 @@ var _              = require('lodash'),
                         style: 'compressed',
                         sourceMap: true
                     },
-                    files: {
-                        'core/client/assets/css/<%= pkg.name %>.min.css': 'core/client/assets/sass/screen.scss',
-                        'core/client/docs/dist/css/<%= pkg.name %>.min.css': 'core/client/assets/sass/screen.scss'
-                    }
+                    files: [
+                        {dest: path.resolve('core/client/assets/css/<%= pkg.name %>.min.css'), src: path.resolve('core/client/assets/sass/screen.scss')},
+                        {dest: path.resolve('core/client/docs/dist/css/<%= pkg.name %>.min.css'), src: path.resolve('core/client/assets/sass/screen.scss')}
+                    ]
                 }
             },
 
@@ -764,7 +771,7 @@ var _              = require('lodash'),
         // details of each of the test suites.
         //
         grunt.registerTask('test', 'Run tests and lint code',
-            ['jshint', 'jscs', 'test-routes', 'test-unit', 'test-integration', 'test-functional']);
+            ['jshint', 'jscs', 'test-routes', 'test-module', 'test-unit', 'test-integration', 'test-functional']);
 
         // ### Lint
         //
@@ -840,6 +847,14 @@ var _              = require('lodash'),
         // quick to test many permutations of routes / urls in the system.
         grunt.registerTask('test-routes', 'Run functional route tests (mocha)',
             ['clean:test', 'setTestEnv', 'ensureConfig', 'mochacli:routes']);
+
+        // ### Module tests *(sub task)*
+        // `grunt test-module` will run just the module tests
+        //
+        // The purpose of the module tests is to ensure that Ghost can be used as an npm module and exposes all
+        // required methods to interact with it.
+        grunt.registerTask('test-module', 'Run functional module tests (mocha)',
+            ['clean:test', 'setTestEnv', 'ensureConfig', 'mochacli:module']);
 
         // ### Functional tests for the setup process
         // `grunt test-functional-setup will run just the functional tests for the setup page.
@@ -945,7 +960,8 @@ var _              = require('lodash'),
         //     `grunt buildAboutPage --force`
         grunt.registerTask('buildAboutPage', 'Compile assets for the About Ghost page', function () {
             var done = this.async(),
-                templatePath = 'core/client/templates/-contributors.hbs';
+                templatePath = 'core/client/templates/-contributors.hbs',
+                ninetyDaysAgo = Date.now() - (1000 * 60 * 60 * 24 * 90);
 
             if (fs.existsSync(templatePath) && !grunt.option('force')) {
                 grunt.log.writeln('Contributors template already exists.');
@@ -957,7 +973,7 @@ var _              = require('lodash'),
             getTopContribs({
                 user: 'tryghost',
                 repo: 'ghost',
-                releaseTag: '0.4.2',
+                releaseDate: ninetyDaysAgo,
                 count: 20
             }).then(function makeContributorTemplate(contributors) {
                 var contributorTemplate = '<li>\n\t<a href="<%githubUrl%>" title="<%name%>">\n' +
@@ -987,7 +1003,7 @@ var _              = require('lodash'),
                     });
                 };
                 return Promise.all(_.map(contributors, function (contributor) {
-                    return downloadImagePromise(contributor.avatarUrl, contributor.name);
+                    return downloadImagePromise(contributor.avatarUrl + '&s=60', contributor.name);
                 }));
             }).catch(function (error) {
                 grunt.log.error(error);

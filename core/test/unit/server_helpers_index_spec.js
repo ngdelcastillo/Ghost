@@ -669,6 +669,55 @@ describe('Core Helpers', function () {
         });
     });
 
+    describe('is Block Helper', function () {
+        it('has loaded is block helper', function () {
+            should.exist(handlebars.helpers.is);
+        });
+
+        // All positive tests
+        it('should match single context "index"', function () {
+            var fn = sinon.spy(),
+                inverse = sinon.spy();
+
+            helpers.is.call(
+                {},
+                'index',
+                {fn: fn, inverse: inverse, data: {root: {context: ['home', 'index']}}}
+            );
+
+            fn.called.should.be.true;
+            inverse.called.should.be.false;
+        });
+
+        it('should match OR context "index, paged"', function () {
+            var fn = sinon.spy(),
+                inverse = sinon.spy();
+
+            helpers.is.call(
+                {},
+                'index, paged',
+                {fn: fn, inverse: inverse, data: {root: {context: ['tag', 'paged']}}}
+            );
+
+            fn.called.should.be.true;
+            inverse.called.should.be.false;
+        });
+
+        it('should not match "paged"', function () {
+            var fn = sinon.spy(),
+                inverse = sinon.spy();
+
+            helpers.is.call(
+                {},
+                'paged',
+                {fn: fn, inverse: inverse, data: {root: {context: ['index', 'home']}}}
+            );
+
+            fn.called.should.be.false;
+            inverse.called.should.be.true;
+        });
+    });
+
     describe('has Block Helper', function () {
         it('has loaded has block helper', function () {
             should.exist(handlebars.helpers.has);
@@ -1239,6 +1288,16 @@ describe('Core Helpers', function () {
             }).catch(done);
         });
 
+        it('returns correct title for a post with meta_title set', function (done) {
+            var post = {relativeUrl: '/nice-post', post: {title: 'Post Title', meta_title: 'Awesome Post'}};
+            helpers.meta_title.call(post).then(function (rendered) {
+                should.exist(rendered);
+                String(rendered).should.equal('Awesome Post');
+
+                done();
+            }).catch(done);
+        });
+
         it('returns correct title for a tag page', function (done) {
             var tag = {relativeUrl: '/tag/rasper-red', tag: {name: 'Rasper Red'}};
             helpers.meta_title.call(tag).then(function (rendered) {
@@ -1353,11 +1412,21 @@ describe('Core Helpers', function () {
             }).catch(done);
         });
 
-        it('returns empty description on post', function (done) {
-            var post = {relativeUrl: '/nice-post', post: {title: 'Post Title'}};
+        it('returns empty description when meta_description is not set', function (done) {
+            var post = {relativeUrl: '/nice-post', post: {title: 'Post Title', html: 'Very nice post indeed.'}};
             helpers.meta_description.call(post).then(function (rendered) {
                 should.exist(rendered);
                 String(rendered).should.equal('');
+
+                done();
+            }).catch(done);
+        });
+
+        it('returns meta_description on post with meta_description set', function (done) {
+            var post = {relativeUrl: '/nice-post', post: {title: 'Post Title', meta_description: 'Nice post about stuff.'}};
+            helpers.meta_description.call(post).then(function (rendered) {
+                should.exist(rendered);
+                String(rendered).should.equal('Nice post about stuff.');
 
                 done();
             }).catch(done);

@@ -6,6 +6,7 @@ import boundOneWay from 'ghost/utils/bound-one-way';
 var PostSettingsMenuController = Ember.ObjectController.extend({
     //State for if the user is viewing a tab's pane.
     needs: 'application',
+
     isViewingSubview: Ember.computed('controllers.application.showRightOutlet', function (key, value) {
         // Not viewing a subview if we can't even see the PSM
         if (!this.get('controllers.application.showRightOutlet')) {
@@ -42,7 +43,7 @@ var PostSettingsMenuController = Ember.ObjectController.extend({
             return;
         }
 
-        model.save(this.get('saveOptions')).catch(function (errors) {
+        model.save().catch(function (errors) {
             self.showErrors(errors);
             self.set('selectedAuthor', author);
             model.rollback();
@@ -52,8 +53,8 @@ var PostSettingsMenuController = Ember.ObjectController.extend({
         //Loaded asynchronously, so must use promise proxies.
         var deferred = {};
 
-        deferred.promise = this.store.find('user').then(function (users) {
-            return users.rejectBy('id', 'me');
+        deferred.promise = this.store.find('user', {limit: 'all'}).then(function (users) {
+            return users.rejectBy('id', 'me').sortBy('name');
         }).then(function (users) {
             return users.filter(function (user) {
                 return user.get('active');
@@ -64,8 +65,6 @@ var PostSettingsMenuController = Ember.ObjectController.extend({
             .extend(Ember.PromiseProxyMixin)
             .create(deferred);
     }),
-    //Changes in the PSM are too minor to warrant NProgress firing
-    saveOptions: {disableNProgress: true},
     /**
      * The placeholder is the published date of the post,
      * or the current date if the pubdate has not been set.
@@ -97,6 +96,52 @@ var PostSettingsMenuController = Ember.ObjectController.extend({
         });
     },
 
+    metaTitleScratch: boundOneWay('meta_title'),
+    metaDescriptionScratch: boundOneWay('meta_description'),
+
+    seoTitle: Ember.computed('titleScratch', 'metaTitleScratch', function () {
+        var metaTitle = this.get('metaTitleScratch') || '';
+
+        return metaTitle.length > 0 ? metaTitle : this.get('titleScratch');
+    }),
+
+    seoDescription: Ember.computed('scratch', 'metaDescriptionScratch', function () {
+        var metaDescription = this.get('metaDescriptionScratch') || '',
+            el,
+            html = '',
+            placeholder;
+
+        if (metaDescription.length > 0) {
+            placeholder = metaDescription;
+        } else {
+            el = $('.rendered-markdown');
+
+            // Get rendered markdown
+            if (!_.isUndefined(el) && el.length > 0) {
+                html = el.clone();
+                html.find('.image-uploader').remove();
+                html = html[0].innerHTML;
+            }
+
+            // Strip HTML
+            placeholder = $('<div />', { html: html }).text();
+            // Replace new lines and trim
+            placeholder = placeholder.replace(/\n+/g, ' ').trim();
+        }
+
+        if (placeholder.length > 156) {
+            // Limit to 156 characters
+            placeholder = placeholder.substring(0,156).trim();
+            placeholder = Ember.Handlebars.Utils.escapeExpression(placeholder);
+            placeholder = new Ember.Handlebars.SafeString(placeholder + '&hellip;');
+        }
+
+        return placeholder;
+    }),
+
+    seoSlug: Ember.computed('slug', 'slugPlaceholder', function () {
+        return this.get('slug') ? this.get('slug') : this.get('slugPlaceholder');
+    }),
 
     // observe titleScratch, keeping the post's slug in sync
     // with it until saved for the first time.
@@ -139,6 +184,22 @@ var PostSettingsMenuController = Ember.ObjectController.extend({
             var self = this;
 
             this.toggleProperty('page');
+            // If this is a new post.  Don't save the model.  Defer the save
+            // to the user pressing the save button
+            if (this.get('isNew')) {
+                return;
+            }
+
+            this.get('model').save().catch(function (errors) {
+                self.showErrors(errors);
+                self.get('model').rollback();
+            });
+        },
+
+        toggleFeatured: function () {
+            var self = this;
+
+            this.toggleProperty('featured');
             // If this is a new post.  Don't save the model.  Defer the save
             // to the user pressing the save button
             if (this.get('isNew')) {
@@ -208,12 +269,7 @@ var PostSettingsMenuController = Ember.ObjectController.extend({
                     return;
                 }
 
-                return self.get('model').save(self.get('saveOptions'));
-            }).then(function (changed) {
-                if (changed) {
-                    self.showSuccess('Permalink successfully changed to <strong>' +
-                    self.get('slug') + '</strong>.');
-                }
+                return self.get('model').save();
             }).catch(function (errors) {
                 self.showErrors(errors);
                 self.get('model').rollback();
@@ -268,9 +324,53 @@ var PostSettingsMenuController = Ember.ObjectController.extend({
                 return;
             }
 
-            this.get('model').save(this.get('saveOptions')).catch(function (errors) {
+            this.get('model').save().catch(function (errors) {
                 self.showErrors(errors);
                 self.get('model').rollback();
+            });
+        },
+
+        setMetaTitle: function (metaTitle) {
+            var self = this,
+                currentTitle = this.get('meta_title') || '';
+
+            // Only update if the title has changed
+            if (currentTitle === metaTitle) {
+                return;
+            }
+
+            this.set('meta_title', metaTitle);
+
+            // If this is a new post.  Don't save the model.  Defer the save
+            // to the user pressing the save button
+            if (this.get('isNew')) {
+                return;
+            }
+
+            this.get('model').save().catch(function (errors) {
+                self.showErrors(errors);
+            });
+        },
+
+        setMetaDescription: function (metaDescription) {
+            var self = this,
+                currentDescription = this.get('meta_description') || '';
+
+            // Only update if the description has changed
+            if (currentDescription === metaDescription) {
+                return;
+            }
+
+            this.set('meta_description', metaDescription);
+
+            // If this is a new post.  Don't save the model.  Defer the save
+            // to the user pressing the save button
+            if (this.get('isNew')) {
+                return;
+            }
+
+            this.get('model').save().catch(function (errors) {
+                self.showErrors(errors);
             });
         },
 
@@ -283,7 +383,7 @@ var PostSettingsMenuController = Ember.ObjectController.extend({
                 return;
             }
 
-            this.get('model').save(this.get('saveOptions')).catch(function (errors) {
+            this.get('model').save().catch(function (errors) {
                 self.showErrors(errors);
                 self.get('model').rollback();
             });
@@ -298,7 +398,7 @@ var PostSettingsMenuController = Ember.ObjectController.extend({
                 return;
             }
 
-            this.get('model').save(this.get('saveOptions')).catch(function (errors) {
+            this.get('model').save().catch(function (errors) {
                 self.showErrors(errors);
                 self.get('model').rollback();
             });

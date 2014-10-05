@@ -3,7 +3,6 @@
 var testUtils     = require('../../../utils'),
     should        = require('should'),
     supertest     = require('supertest'),
-    express       = require('express'),
 
     ghost         = require('../../../../../core'),
 
@@ -13,12 +12,10 @@ describe('Settings API', function () {
     var accesstoken = '';
 
     before(function (done) {
-        var app = express();
-
         // starting ghost automatically populates the db
         // TODO: prevent db init, and manage bringing up the DB with fixtures ourselves
-        ghost({app: app}).then(function () {
-            request = supertest.agent(app);
+        ghost().then(function (ghostServer) {
+            request = supertest.agent(ghostServer.rootApp);
         }).then(function () {
             return testUtils.doAuth(request);
         }).then(function (token) {
@@ -41,6 +38,7 @@ describe('Settings API', function () {
         request.get(testUtils.API.getApiQuery('settings/'))
             .set('Authorization', 'Bearer ' + accesstoken)
             .expect('Content-Type', /json/)
+            .expect('Cache-Control', testUtils.cacheRules['private'])
             .expect(200)
             .end(function (err, res) {
                 if (err) {
@@ -60,6 +58,7 @@ describe('Settings API', function () {
         request.get(testUtils.API.getApiQuery('settings/title/'))
             .set('Authorization', 'Bearer ' + accesstoken)
             .expect('Content-Type', /json/)
+            .expect('Cache-Control', testUtils.cacheRules['private'])
             .expect(200)
             .end(function (err, res) {
                 if (err) {
@@ -83,6 +82,7 @@ describe('Settings API', function () {
         request.get(testUtils.API.getApiQuery('settings/testsetting/'))
             .set('Authorization', 'Bearer ' + accesstoken)
             .expect('Content-Type', /json/)
+            .expect('Cache-Control', testUtils.cacheRules['private'])
             .expect(404)
             .end(function (err, res) {
                 if (err) {
@@ -102,6 +102,7 @@ describe('Settings API', function () {
         request.get(testUtils.API.getApiQuery('settings/'))
             .set('Authorization', 'Bearer ' + accesstoken)
             .expect('Content-Type', /json/)
+            .expect('Cache-Control', testUtils.cacheRules['private'])
             .end(function (err, res) {
                 if (err) {
                     return done(err);
@@ -122,6 +123,7 @@ describe('Settings API', function () {
                     .set('Authorization', 'Bearer ' + accesstoken)
                     .send(settingToChange)
                     .expect('Content-Type', /json/)
+                    .expect('Cache-Control', testUtils.cacheRules['private'])
                     .expect(200)
                     .end(function (err, res) {
                         if (err) {
@@ -142,6 +144,7 @@ describe('Settings API', function () {
         request.get(testUtils.API.getApiQuery('settings/'))
             .set('Authorization', 'Bearer ' + accesstoken)
             .expect('Content-Type', /json/)
+            .expect('Cache-Control', testUtils.cacheRules['private'])
             .end(function (err, res) {
                 if (err) {
                     return done(err);
@@ -171,6 +174,7 @@ describe('Settings API', function () {
         request.get(testUtils.API.getApiQuery('settings/'))
             .set('Authorization', 'Bearer ' + accesstoken)
             .expect('Content-Type', /json/)
+            .expect('Cache-Control', testUtils.cacheRules['private'])
             .end(function (err, res) {
                 if (err) {
                     return done(err);
@@ -186,6 +190,7 @@ describe('Settings API', function () {
                     .set('Authorization', 'Bearer ' + accesstoken)
                     .send(jsonResponse)
                     .expect('Content-Type', /json/)
+                    .expect('Cache-Control', testUtils.cacheRules['private'])
                     .expect(404)
                     .end(function (err, res) {
                         if (err) {
