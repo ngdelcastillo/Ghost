@@ -6,4 +6,4 @@
 	url = https://github.com/mobeenabdullah/white-fogg-ghost-theme.git
 [submodule "content/themes/uno"]
   path = content/themes/uno
-	url = https://github.com/daleanthony/uno.git
+	url = https://github.com/ngdelcastillo/uno.git
