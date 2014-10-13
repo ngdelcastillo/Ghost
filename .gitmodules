@@ -7,3 +7,6 @@
 [submodule "content/themes/uno"]
   path = content/themes/uno
 	url = https://github.com/ngdelcastillo/uno.git
+[submodule "content/themes/phantom"]
+  path = content/themes/phantom
+	url = https://github.com/ngdelcastillo/ghost-themes.git

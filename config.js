@@ -11,7 +11,16 @@ config = {
     // Configure your URL and mail settings here
     production: {
         url: 'http://noeldelcastillo.azurewebsites.net',
-        mail: {},
+        mail: {
+          transport: 'SMTP',
+            options: {
+              service: 'Mailgun',
+              auth: {
+                user: 'postmaster@pragtechnologies.com',
+                pass: '7accd1251466eceb2061a3be474d80b7'
+              }
+            }
+        },
         database: {
             client: 'sqlite3',
             connection: {
