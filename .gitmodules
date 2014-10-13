@@ -13,3 +13,6 @@
 [submodule "content/themes/phantom"]
   path = content/themes/phantom
 	url = https://github.com/ngdelcastillo/ghost-themes.git
+[submodule "content/themes/sticko"]
+  path = content/themes/sticko
+  url = https://github.com/ngdelcastillo/sticko.git
